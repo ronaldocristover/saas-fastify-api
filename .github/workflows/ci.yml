@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -56,7 +56,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -69,11 +69,21 @@ jobs:
         run: bun run db:migrate
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5434/api_dev
+          JWT_ACCESS_SECRET: ci-access-secret-min-32-chars-long!!!
+          JWT_REFRESH_SECRET: ci-refresh-secret-min-32-chars-long!!!
+          S3_BUCKET: ci-bucket
+          S3_ACCESS_KEY_ID: ci-access-key
+          S3_SECRET_ACCESS_KEY: ci-secret-key
 
       - name: Seed database
         run: bun run db:seed
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5434/api_dev
+          JWT_ACCESS_SECRET: ci-access-secret-min-32-chars-long!!!
+          JWT_REFRESH_SECRET: ci-refresh-secret-min-32-chars-long!!!
+          S3_BUCKET: ci-bucket
+          S3_ACCESS_KEY_ID: ci-access-key
+          S3_SECRET_ACCESS_KEY: ci-secret-key
 
       - name: Start server
         run: |
@@ -92,6 +102,9 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5434/api_dev
           JWT_ACCESS_SECRET: ci-access-secret-min-32-chars-long!!!
           JWT_REFRESH_SECRET: ci-refresh-secret-min-32-chars-long!!!
+          S3_BUCKET: ci-bucket
+          S3_ACCESS_KEY_ID: ci-access-key
+          S3_SECRET_ACCESS_KEY: ci-secret-key
 
       - name: Run Bruno e2e tests
         run: cd bruno && bru run --env local
