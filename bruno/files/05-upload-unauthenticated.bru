@@ -1,0 +1,21 @@
+meta {
+  name: Upload Without Auth (should fail)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host}}/api/v1/files/upload
+  body: multipart-form
+  auth: none
+}
+
+body:multipart-form {
+  file: @example.txt
+}
+
+tests {
+  test("should return 401", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+}

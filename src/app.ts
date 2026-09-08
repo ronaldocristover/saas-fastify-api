@@ -7,9 +7,11 @@ import errorHandler from './plugins/error-handler.js'
 import drizzlePlugin from './plugins/drizzle.js'
 import authPlugin from './plugins/auth.js'
 import rateLimitPlugin from './plugins/rate-limit.js'
+import s3Plugin from './plugins/s3.js'
 import swaggerPlugin from './plugins/swagger.js'
 import authRoutes from './modules/auth/auth.routes.js'
 import memberRoutes from './modules/member/member.routes.js'
+import fileRoutes from './modules/file/file.routes.js'
 import healthRoutes from './routes/health.js'
 
 // Builds the fully-wired Fastify instance without listening. Tests reuse this
@@ -41,6 +43,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(drizzlePlugin)
   await app.register(authPlugin)
   await app.register(rateLimitPlugin)
+  await app.register(s3Plugin)
   // CORS + Helmet are hardening defaults; CORS origin is env-configurable.
   await app.register(cors, { origin: config.CORS_ORIGIN.split(',') })
   await app.register(helmet, { contentSecurityPolicy: false })
@@ -50,6 +53,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(authRoutes, { prefix: '/api/v1/auth' })
   await app.register(memberRoutes, { prefix: '/api/v1/members' })
+  await app.register(fileRoutes, { prefix: '/api/v1/files' })
   await app.register(healthRoutes)
 
   await app.ready()

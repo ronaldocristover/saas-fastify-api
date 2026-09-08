@@ -15,6 +15,13 @@ const envSchema = z.object({
   RATE_LIMIT_TIME_WINDOW: z.string().default('1 minute'),
   RATE_LIMIT_AUTH_MAX: z.coerce.number().int().positive().default(20),
   DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(100).default(10),
+  // S3 file storage
+  S3_BUCKET: z.string().min(1),
+  S3_REGION: z.string().min(1).default('us-east-1'),
+  S3_ENDPOINT: z.string().optional(),
+  S3_ACCESS_KEY_ID: z.string().min(1),
+  S3_SECRET_ACCESS_KEY: z.string().min(1),
+  PRESIGNED_URL_EXPIRY: z.coerce.number().int().positive().default(3600),
 })
 
 const parsed = envSchema.safeParse(process.env)

@@ -29,10 +29,13 @@
     "bruno:run": "cd bruno && bru run --env local"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1127.0",
+    "@aws-sdk/s3-request-presigner": "^3.1127.0",
     "@fastify/cookie": "^11.1.2",
     "@fastify/cors": "^11.3.0",
     "@fastify/helmet": "^13.1.1",
     "@fastify/jwt": "^10.2.2",
+    "@fastify/multipart": "^10.1.1",
     "@fastify/rate-limit": "^11.2.0",
     "@fastify/swagger": "^9.8.1",
     "@fastify/swagger-ui": "^6.1.1",
@@ -52,6 +55,7 @@
     "@types/pg": "^8.23.1",
     "@usebruno/cli": "^1.40.0",
     "@vitest/coverage-v8": "^5.0.0",
+    "aws-sdk-client-mock": "^4.1.0",
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.5",

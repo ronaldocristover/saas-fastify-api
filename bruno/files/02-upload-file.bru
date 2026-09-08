@@ -1,0 +1,38 @@
+meta {
+  name: Upload File
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/api/v1/files/upload
+  body: multipart-form
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{fileAccessToken}}
+}
+
+body:multipart-form {
+  file: @example.txt
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("uploadedFileId", res.getBody().data.id);
+  }
+}
+
+tests {
+  test("should return 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  test("should return file metadata", function() {
+    expect(res.getBody().data).to.have.property("id");
+    expect(res.getBody().data).to.have.property("originalName");
+    expect(res.getBody().data).to.have.property("mimeType");
+    expect(res.getBody().data).to.have.property("size");
+    expect(res.getBody().data).to.have.property("createdAt");
+  });
+}

@@ -1,0 +1,28 @@
+meta {
+  name: Get Download URL
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host}}/api/v1/files/{{uploadedFileId}}/download-url
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{fileAccessToken}}
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("should return presigned URL", function() {
+    expect(res.getBody().data.url).to.be.a("string");
+    expect(res.getBody().data.url).to.include("X-Amz-Signature");
+  });
+  test("should return expiry in seconds", function() {
+    expect(res.getBody().data.expiresIn).to.be.a("number");
+    expect(res.getBody().data.expiresIn).to.be.greaterThan(0);
+  });
+}

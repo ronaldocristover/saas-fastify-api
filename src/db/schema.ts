@@ -1,4 +1,4 @@
-import { index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { index, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 // Single users table: members are users with role = 'member', admins with role = 'admin'.
 export const users = pgTable(
@@ -43,3 +43,26 @@ export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
 export type RefreshToken = typeof refreshTokens.$inferSelect
 export type NewRefreshToken = typeof refreshTokens.$inferInsert
+
+// File uploads: metadata for files stored in S3.
+export const files = pgTable(
+  'files',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    originalName: text('original_name').notNull(),
+    mimeType: text('mime_type').notNull(),
+    size: integer('size').notNull(),
+    s3Key: text('s3_key').notNull().unique(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index('idx_files_user_id').on(t.userId),
+    index('idx_files_created_at').on(t.createdAt),
+  ],
+)
+
+export type FileRecord = typeof files.$inferSelect
+export type NewFileRecord = typeof files.$inferInsert

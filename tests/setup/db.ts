@@ -7,5 +7,5 @@ export async function buildTestApp(): Promise<FastifyInstance> {
 }
 
 export async function truncateAll(pool: Pool) {
-  await pool.query('TRUNCATE TABLE users, refresh_tokens CASCADE')
+  await pool.query('TRUNCATE TABLE users, refresh_tokens, files CASCADE')
 }
