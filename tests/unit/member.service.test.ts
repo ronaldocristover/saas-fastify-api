@@ -1,12 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'bun:test'
 import { createMemberService } from '../../src/modules/member/member.service.js'
 import type { MemberRepository } from '../../src/modules/member/member.repository.js'
 import { notFound } from '../../src/common/errors.js'
-
-// Mock repository
-vi.mock('../../src/modules/member/member.repository.js', () => ({
-  createMemberRepository: vi.fn(),
-}))
 
 describe('MemberService', () => {
   let service: ReturnType<typeof createMemberService>
@@ -30,7 +25,7 @@ describe('MemberService', () => {
         { id: '2', email: 'b@test.com', fullName: 'B', role: 'admin' as const, createdAt: new Date(), updatedAt: new Date() },
       ]
 
-      vi.mocked(mockRepo.list).mockResolvedValue({
+      mockRepo.list.mockResolvedValue({
         data: mockMembers,
         meta: { page: 1, limit: 20, total: 2, totalPages: 1 },
       })
@@ -53,7 +48,7 @@ describe('MemberService', () => {
         updatedAt: new Date(),
       }
 
-      vi.mocked(mockRepo.findById).mockResolvedValue(mockMember)
+      mockRepo.findById.mockResolvedValue(mockMember)
 
       const result = await service.getById('1')
 
@@ -61,7 +56,7 @@ describe('MemberService', () => {
     })
 
     it('should throw if member not found', async () => {
-      vi.mocked(mockRepo.findById).mockRejectedValue(notFound('MEMBER_NOT_FOUND', 'Member not found'))
+      mockRepo.findById.mockRejectedValue(notFound('MEMBER_NOT_FOUND', 'Member not found'))
 
       await expect(service.getById('nonexistent')).rejects.toThrow('Member not found')
     })
@@ -79,7 +74,7 @@ describe('MemberService', () => {
         updatedAt: new Date(),
       }
 
-      vi.mocked(mockRepo.update).mockResolvedValue(mockMember)
+      mockRepo.update.mockResolvedValue(mockMember)
 
       const result = await service.update(requester, '1', { fullName: 'Updated Name' })
 
@@ -97,7 +92,7 @@ describe('MemberService', () => {
         updatedAt: new Date(),
       }
 
-      vi.mocked(mockRepo.update).mockResolvedValue(mockMember)
+      mockRepo.update.mockResolvedValue(mockMember)
 
       const result = await service.update(requester, '1', { fullName: 'Updated Name' })
 
@@ -117,9 +112,9 @@ describe('MemberService', () => {
     it('should allow admin to delete members', async () => {
       const requester = { role: 'admin' as const }
 
-      vi.mocked(mockRepo.softDelete).mockResolvedValue(undefined)
+      mockRepo.softDelete.mockResolvedValue(undefined)
 
-      await expect(service.delete(requester, '1')).resolves.not.toThrow()
+      await expect(service.delete(requester, '1')).resolves.toBeUndefined()
     })
 
     it('should not allow member to delete others', async () => {

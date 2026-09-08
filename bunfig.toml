@@ -1,0 +1,5 @@
+# Bun configuration. [test].preload runs before each test file's imports:
+# env defaults first, then — for integration runs only — the testcontainers
+# Postgres so DATABASE_URL is final before src/config/env.ts is parsed.
+[test]
+preload = ["./tests/setup/bun-preload.ts"]

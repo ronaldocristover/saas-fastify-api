@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect } from 'bun:test'
 import { parsePagination, buildMeta } from '../../src/common/pagination.js'
 
 describe('parsePagination', () => {

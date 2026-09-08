@@ -1,6 +1,6 @@
 import fp from 'fastify-plugin'
 import type { FastifyInstance } from 'fastify'
-import { getPool, getDb } from '../db/index.js'
+import { getDb, closePool } from '../db/index.js'
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -14,7 +14,7 @@ export default fp(
     const db = getDb()
     fastify.decorate('db', db)
     fastify.addHook('onClose', async () => {
-      await getPool().end()
+      await closePool()
     })
   },
   { name: 'drizzle' },

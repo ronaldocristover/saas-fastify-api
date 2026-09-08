@@ -1,24 +1,27 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, mock } from 'bun:test'
 import { createFileService } from '../../src/modules/file/file.service.js'
 import type { FileRepository } from '../../src/modules/file/file.repository.js'
 
-// Mock repository
-vi.mock('../../src/modules/file/file.repository.js', () => ({
-  createFileRepository: vi.fn(),
+// bun:test module mocks persist for the process, so they MUST be restored in
+// afterEach or they leak into other test files (bun test keeps one module
+// registry per worker when files run without --isolate).
+const getSignedUrlMock = vi.fn().mockResolvedValue('https://s3.example.com/signed')
+const createReadStreamMock = vi.fn().mockReturnValue({
+  pipe: vi.fn(),
+  on: vi.fn(),
+})
+
+mock.module('@aws-sdk/s3-request-presigner', () => ({
+  getSignedUrl: getSignedUrlMock,
+}))
+mock.module('node:fs', () => ({
+  createReadStream: createReadStreamMock,
+  default: { createReadStream: createReadStreamMock },
 }))
 
-// Mock presigner
-vi.mock('@aws-sdk/s3-request-presigner', () => ({
-  getSignedUrl: vi.fn().mockResolvedValue('https://s3.example.com/signed'),
-}))
-
-// Mock fs for createReadStream
-vi.mock('node:fs', () => ({
-  createReadStream: vi.fn().mockReturnValue({
-    pipe: vi.fn(),
-    on: vi.fn(),
-  }),
-}))
+afterEach(() => {
+  mock.restore()
+})
 
 describe('FileService', () => {
   let service: ReturnType<typeof createFileService>
@@ -57,7 +60,7 @@ describe('FileService', () => {
         createdAt: new Date().toISOString(),
       }
 
-      vi.mocked(mockRepo.create).mockResolvedValue(mockFile)
+      mockRepo.create.mockResolvedValue(mockFile)
       mockS3Send.mockResolvedValue({ ETag: '"etag"' })
 
       const result = await service.upload('user-1', {
@@ -93,7 +96,7 @@ describe('FileService', () => {
         s3Key: 'user-1/abc-test.txt',
       }
 
-      vi.mocked(mockRepo.findById).mockResolvedValue(mockFile)
+      mockRepo.findById.mockResolvedValue(mockFile)
 
       const result = await service.getDownloadUrl(
         { id: 'user-1', role: 'member' },
@@ -115,7 +118,7 @@ describe('FileService', () => {
         s3Key: 'user-2/abc-test.txt',
       }
 
-      vi.mocked(mockRepo.findById).mockResolvedValue(mockFile)
+      mockRepo.findById.mockResolvedValue(mockFile)
 
       await expect(
         service.getDownloadUrl({ id: 'user-1', role: 'member' }, 'file-1'),
@@ -133,7 +136,7 @@ describe('FileService', () => {
         s3Key: 'user-2/abc-test.txt',
       }
 
-      vi.mocked(mockRepo.findById).mockResolvedValue(mockFile)
+      mockRepo.findById.mockResolvedValue(mockFile)
 
       const result = await service.getDownloadUrl(
         { id: 'admin-1', role: 'admin' },
@@ -145,7 +148,7 @@ describe('FileService', () => {
     })
 
     it('should throw if file not found', async () => {
-      vi.mocked(mockRepo.findById).mockResolvedValue(undefined)
+      mockRepo.findById.mockResolvedValue(undefined)
 
       await expect(
         service.getDownloadUrl({ id: 'user-1', role: 'member' }, 'nonexistent'),
@@ -155,7 +158,7 @@ describe('FileService', () => {
 
   describe('list', () => {
     it('should return paginated files for member (own only)', async () => {
-      vi.mocked(mockRepo.list).mockResolvedValue({
+      mockRepo.list.mockResolvedValue({
         data: [],
         meta: { page: 1, limit: 20, total: 0, totalPages: 0 },
       })
@@ -168,7 +171,7 @@ describe('FileService', () => {
     })
 
     it('should return all files for admin', async () => {
-      vi.mocked(mockRepo.list).mockResolvedValue({
+      mockRepo.list.mockResolvedValue({
         data: [],
         meta: { page: 1, limit: 20, total: 0, totalPages: 0 },
       })

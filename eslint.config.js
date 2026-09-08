@@ -46,12 +46,15 @@ export default tseslint.config(
       ],
       '@typescript-eslint/require-await': 'off',
       'no-console': 'off',
-      // Test assertions intentionally use response.json() and unwrap it freely.
+      // bun:test describe/it/expect are global-like from the runner and lack
+      // explicit type annotations, causing false-positive no-unsafe-* errors.
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
-      // vi.mocked(repo.method).bind(repo) trips this rule; the repos are plain
-      // objects, so unbound-method does not apply the way it does to classes.
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      // vi.fn().bind(repo) trips this rule; the repos are plain objects, so
+      // unbound-method does not apply the way it does to classes.
       '@typescript-eslint/unbound-method': 'off',
       // Test fixtures pass empty db handles / partial fakes deliberately.
       '@typescript-eslint/no-explicit-any': 'off',

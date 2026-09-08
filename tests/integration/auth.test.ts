@@ -1,13 +1,19 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'bun:test'
 import { buildApp } from '../../src/app.js'
 import { Pool } from 'pg'
 import type { FastifyInstance } from 'fastify'
+import { startTestcontainer } from '../setup/testcontainers.js'
+
 
 describe('Auth API', () => {
   let app: FastifyInstance
   let pool: Pool
 
   beforeAll(async () => {
+    // Idempotent: starts the container on first call in the process, resolves
+    // immediately afterwards. The preload skips it unless PG_TEST=1 (bunfig
+    // preload gets no argv, so it cannot detect which files will run).
+    await startTestcontainer()
     pool = new Pool({ connectionString: process.env.DATABASE_URL })
     app = await buildApp()
     await app.ready()
@@ -16,6 +22,8 @@ describe('Auth API', () => {
   afterAll(async () => {
     await app.close()
     await pool.end()
+    // Container teardown is handled by Ryuk when the test process exits; the
+    // preload owns the lifecycle for multi-file runs.
   })
 
   beforeEach(async () => {

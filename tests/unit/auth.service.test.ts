@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'bun:test'
 import { createAuthService, type AuthService } from '../../src/modules/auth/auth.service.js'
 import type { AuthRepositoryShape } from '../../src/modules/auth/auth.service.js'
 import { hashPassword } from '../../src/common/password.js'
@@ -51,8 +51,8 @@ describe('AuthService', () => {
         updatedAt: new Date(),
       }
 
-      vi.mocked(mockRepo.findByEmail).mockResolvedValue(undefined)
-      vi.mocked(mockRepo.create).mockResolvedValue(mockUser)
+      mockRepo.findByEmail.mockResolvedValue(undefined)
+      mockRepo.create.mockResolvedValue(mockUser)
 
       const result = await service.register({
         email: 'test@example.com',
@@ -68,7 +68,7 @@ describe('AuthService', () => {
     })
 
     it('should throw EMAIL_EXISTS if email already exists', async () => {
-      vi.mocked(mockRepo.findByEmail).mockResolvedValue({
+      mockRepo.findByEmail.mockResolvedValue({
         id: 'existing-user',
         email: 'test@example.com',
         passwordHash: await hashPassword('password123'),
@@ -101,7 +101,7 @@ describe('AuthService', () => {
         updatedAt: new Date(),
       }
 
-      vi.mocked(mockRepo.findByEmail).mockResolvedValue(mockUser)
+      mockRepo.findByEmail.mockResolvedValue(mockUser)
 
       const result = await service.login({
         email: 'test@example.com',
@@ -124,7 +124,7 @@ describe('AuthService', () => {
         updatedAt: new Date(),
       }
 
-      vi.mocked(mockRepo.findByEmail).mockResolvedValue(mockUser)
+      mockRepo.findByEmail.mockResolvedValue(mockUser)
 
       await expect(
         service.login({
@@ -135,7 +135,7 @@ describe('AuthService', () => {
     })
 
     it('should throw INVALID_CREDENTIALS for non-existent email', async () => {
-      vi.mocked(mockRepo.findByEmail).mockResolvedValue(undefined)
+      mockRepo.findByEmail.mockResolvedValue(undefined)
 
       await expect(
         service.login({
@@ -158,7 +158,7 @@ describe('AuthService', () => {
         updatedAt: new Date(),
       }
 
-      vi.mocked(mockRepo.findById).mockResolvedValue(mockUser)
+      mockRepo.findById.mockResolvedValue(mockUser)
 
       const result = await service.getMe('user-1')
 
@@ -167,7 +167,7 @@ describe('AuthService', () => {
     })
 
     it('should throw USER_NOT_FOUND if user does not exist', async () => {
-      vi.mocked(mockRepo.findById).mockResolvedValue(undefined)
+      mockRepo.findById.mockResolvedValue(undefined)
 
       await expect(service.getMe('nonexistent')).rejects.toThrow('User not found')
     })
@@ -176,8 +176,8 @@ describe('AuthService', () => {
   describe('refresh', () => {
     it('should issue new token pair for valid token', async () => {
       const fakeJwt = `header.${Buffer.from(JSON.stringify({ sub: 'user-1', exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url')}.sig`
-      vi.mocked(mockRepo.revokeIfActive).mockResolvedValue(true)
-      vi.mocked(mockRepo.findById).mockResolvedValue({
+      mockRepo.revokeIfActive.mockResolvedValue(true)
+      mockRepo.findById.mockResolvedValue({
         id: 'user-1', email: 'test@example.com', passwordHash: 'x', fullName: 'Test', role: 'member' as const, createdAt: new Date(), updatedAt: new Date(), deletedAt: null
       })
 
@@ -190,7 +190,7 @@ describe('AuthService', () => {
 
     it('should throw if token already revoked', async () => {
       const fakeJwt = `header.${Buffer.from(JSON.stringify({ sub: 'user-1', exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url')}.sig`
-      vi.mocked(mockRepo.revokeIfActive).mockResolvedValue(false)
+      mockRepo.revokeIfActive.mockResolvedValue(false)
 
       await expect(service.refresh(fakeJwt)).rejects.toThrow()
     })

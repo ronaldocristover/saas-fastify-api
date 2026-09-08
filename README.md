@@ -5,14 +5,15 @@ Security-hardened, production-ready Fastify 5 + PostgreSQL API with layered arch
 ## Stack
 
 - **Fastify 5** + TypeScript 5.9 (strict, ESM)
+- **Bun 1.4** runtime, package manager, and test runner
 - **PostgreSQL 17** + Drizzle ORM + drizzle-kit migrations
 - **Zod v4** via `@fastify/type-provider-zod` (validation + types from one schema)
 - **Auth**: argon2id passwords, JWT access (15m) + rotating refresh tokens (7d, SHA-256 hashed in DB, atomic single-use rotation)
 - **Security**: timing-safe login, Pino log redaction, static 404 responses, min-length JWT secrets, Swagger opt-in
 - **Observability**: Pino JSON logs (redacted), `/health` + `/ready`, request-ID correlation
 - **Docs**: Swagger UI at `/documentation` (requires `SWAGGER_ENABLED=true`)
-- **Tests**: Vitest (43 tests across 5 files — unit + integration via testcontainers), Bruno e2e (`@usebruno/cli`)
-- **Docker**: Postgres 17 in docker-compose (port 5434), multi-stage production Dockerfile
+- **Tests**: Bun test (56 tests across 7 files — unit + integration via testcontainers), Bruno e2e (`@usebruno/cli`)
+- **Docker**: Postgres 17 in docker-compose (port 5434), multi-stage production Dockerfile with Bun
 
 ## Quick start
 
@@ -21,17 +22,17 @@ Security-hardened, production-ready Fastify 5 + PostgreSQL API with layered arch
 docker compose up -d
 
 # 2. Install dependencies
-pnpm install
+bun install
 
 # 3. Configure environment
 cp .env.example .env
 
 # 4. Run migrations + seed
-pnpm db:migrate
-pnpm db:seed
+bun run db:migrate
+bun run db:seed
 
 # 5. Start dev server
-pnpm dev
+bun run dev
 ```
 
 The server is now at `http://localhost:3000`. Swagger UI requires `SWAGGER_ENABLED=true` in your `.env`.
@@ -42,18 +43,18 @@ Seeded accounts: `admin@example.com` / `admin123456`, `member1..5@example.com` /
 
 | Script | Purpose |
 |---|---|
-| `pnpm dev` | Dev server with watch mode |
-| `pnpm build` / `pnpm start` | Production build + run |
-| `pnpm test` | Unit + integration tests (spins up testcontainers Postgres) |
-| `pnpm test:unit` / `pnpm test:integration` | Run one suite |
-| `pnpm test:coverage` | Tests + v8 coverage |
-| `pnpm lint` / `pnpm typecheck` | ESLint / tsc |
-| `pnpm db:generate` | Generate migration from schema changes |
-| `pnpm db:migrate` | Apply migrations |
-| `pnpm db:seed` | Seed admin + sample members (idempotent) |
-| `pnpm db:studio` | Drizzle Studio (DB browser) |
-| `pnpm bruno:run` | Bruno e2e suite against running server |
-| `pnpm verify` | lint + typecheck + test |
+| `bun run dev` | Dev server with watch mode |
+| `bun run build` / `bun run start` | TypeScript build + production run |
+| `bun test` | Unit + integration tests (spins up testcontainers Postgres) |
+| `bun run test:unit` / `bun run test:integration` | Run one suite |
+| `bun run test:coverage` | Tests + coverage |
+| `bun run lint` / `bun run typecheck` | ESLint / tsc |
+| `bun run db:generate` | Generate migration from schema changes |
+| `bun run db:migrate` | Apply migrations |
+| `bun run db:seed` | Seed admin + sample members (idempotent) |
+| `bun run db:studio` | Drizzle Studio (DB browser) |
+| `bun run bruno:run` | Bruno e2e suite against running server |
+| `bun run verify` | lint + typecheck + test |
 
 ## API overview
 
@@ -70,6 +71,9 @@ Base URL: `/api/v1`
 | GET | `/members/:id` | Bearer | Any authenticated user |
 | PATCH | `/members/:id` | Bearer | Admin: any field incl. role; self: own fullName |
 | DELETE | `/members/:id` | Bearer admin | Soft delete |
+| POST | `/files/upload` | Bearer | Multipart upload to S3 |
+| GET | `/files` | Bearer | List files (members: own, admin: all) |
+| GET | `/files/:id/download-url` | Bearer | Presigned download URL |
 | GET | `/health` | -- | Liveness |
 | GET | `/ready` | -- | Readiness (checks DB) |
 
@@ -104,6 +108,7 @@ src/
   modules/
     auth/              # schemas -> repository -> service -> routes
     member/            # schemas -> repository -> service -> routes
+    file/              # schemas -> repository -> service -> routes (S3 uploads)
   routes/health.ts
   types/               # roles.ts (UserRole), auth.ts (AuthenticatedUser), fastify.d.ts
 ```
@@ -126,17 +131,17 @@ Layering rules:
 
 - **Unit** (`tests/unit`): services tested against mocked repositories
 - **Integration** (`tests/integration`): full app via `app.inject()` against real Postgres (testcontainers), tables truncated per test
-- **Total**: 43 tests across 5 files (auth service, member service, pagination, auth integration, member integration)
+- **Total**: 56 tests across 7 files (auth service, member service, pagination, auth integration, member integration, file service, file integration)
 - **E2E**: Bruno collection chains login -> authenticated requests via runtime variables
 
 ## Docker
 
-`docker-compose.yml` runs Postgres 17 on port 5434 (host-accessible via `127.0.0.1:5434`). The `Dockerfile` builds a multi-stage production image: build stage compiles TypeScript on bookworm-slim, production stage runs on Alpine (~487MB total) with only production dependencies. argon2 works via its musl prebuild on Alpine.
+`docker-compose.yml` runs Postgres 17 on port 5434 (host-accessible via `127.0.0.1:5434`). The `Dockerfile` uses a multi-stage build: build stage compiles TypeScript and produces a standalone Bun bytecode executable, production stage runs on `oven/bun:1-slim` with only production dependencies.
 
 ```bash
-docker compose up -d                              # Start Postgres
-docker build --platform linux/amd64 -t fastify-api .  # Build production image (~487MB)
-docker run --env-file .env -p 3000:3000 fastify-api    # Run
+docker compose up -d                                # Start Postgres
+docker build --platform linux/amd64 -t fastify-api . # Build production image
+docker run --env-file .env -p 3000:3000 fastify-api  # Run
 ```
 
 ## CI
@@ -164,16 +169,22 @@ GitHub Actions (`.github/workflows/ci.yml`):
 | `RATE_LIMIT_MAX` | `300` | Global rate limit per minute |
 | `RATE_LIMIT_TIME_WINDOW` | `1 minute` | Global rate limit window |
 | `RATE_LIMIT_AUTH_MAX` | `20` | Auth endpoints rate limit per minute |
+| `S3_BUCKET` | (required) | S3 bucket name for file uploads |
+| `S3_REGION` | `us-east-1` | S3 region |
+| `S3_ENDPOINT` | -- | Optional custom endpoint (MinIO, LocalStack) |
+| `S3_ACCESS_KEY_ID` | (required) | AWS access key |
+| `S3_SECRET_ACCESS_KEY` | (required) | AWS secret key |
+| `PRESIGNED_URL_EXPIRY` | `3600` | Presigned URL expiry in seconds |
 
-`ADMIN_EMAIL` and `ADMIN_PASSWORD` are only used by `pnpm db:seed` and are not required for app startup.
+`ADMIN_EMAIL` and `ADMIN_PASSWORD` are only used by `bun run db:seed` and are not required for app startup.
 
 ## Bruno collection
 
 Open `bruno/` in [Bruno](https://www.usebruno.com) (pick the `local` environment) or run headless:
 
 ```bash
-pnpm dev &      # or pnpm start
-pnpm bruno:run
+bun run dev &      # or bun run start
+bun run bruno:run
 ```
 
 Requests chain via runtime variables: login stores `accessToken`/`refreshToken`, member requests reuse them.

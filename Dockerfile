@@ -1,31 +1,24 @@
-# Build stage
-FROM node:22-bookworm-slim AS build
+# Build stage: Bun compiles the app into a self-contained bytecode bundle
+FROM oven/bun:1 AS build
 WORKDIR /app
 
-RUN corepack enable
-
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
 COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
-RUN pnpm build
+RUN bun build --compile --minify --sourcemap --bytecode --target=bun ./src/server.ts --outfile ./dist/server
 
-# Production stage: Alpine for size. argon2@0.45 ships a musl prebuild
-# (prebuilds/linux-x64/argon2.musl.node), so no build tools are needed.
-FROM node:22-alpine
+# Production stage: slimmer image with only runtime
+FROM oven/bun:1-slim
 WORKDIR /app
 ENV NODE_ENV=production
 
-RUN corepack enable
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --production
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile --prod \
-  # Prune non-runtime artifacts pnpm leaves behind (headers, maps, docs).
-  && find node_modules -name "*.md" -o -name "*.map" -o -name "*.d.ts" -o -name "*.ts" | xargs rm -f 2>/dev/null || true
-
-COPY --from=build /app/dist ./dist
+COPY --from=build /app/dist/server ./dist/server
 
 EXPOSE 3000
-USER node
-CMD ["node", "dist/server.js"]
+USER bun
+CMD ["./dist/server"]
