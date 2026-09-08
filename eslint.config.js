@@ -53,6 +53,10 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
+      // bun:test's expect(...).rejects is typed void, so `await expect(...)`
+      // trips await-thenable / no-floating-promises (runtime is fine).
+      '@typescript-eslint/await-thenable': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
       // vi.fn().bind(repo) trips this rule; the repos are plain objects, so
       // unbound-method does not apply the way it does to classes.
       '@typescript-eslint/unbound-method': 'off',
