@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Coverage
+coverage/
+
+# Env
+.env
+.env.*.local
+
+# Caches / logs
+*.log
+.eslintcache
+
+# Test containers
+testcontainers-java.log
+
+# Bruno runtime state
+bruno/.bru-vars.json
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude local settings
+.claude/settings.local.json

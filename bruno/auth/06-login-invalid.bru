@@ -1,0 +1,29 @@
+meta {
+  name: Login (Invalid Credentials)
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host}}/api/v1/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "testuser@example.com",
+    "password": "wrong-password"
+  }
+}
+
+tests {
+  test("should return 401", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+
+  test("should return error envelope", function() {
+    expect(res.getBody().error).to.have.property("code");
+    expect(res.getBody().error.code).to.equal("INVALID_CREDENTIALS");
+  });
+}

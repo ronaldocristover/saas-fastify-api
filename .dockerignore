@@ -1,0 +1,45 @@
+# Build context should only contain what the Dockerfile needs:
+# package.json, pnpm-lock.yaml, pnpm-workspace.yaml, tsconfig*, src/
+
+# Dependencies (installed inside the image)
+node_modules/
+
+# Build output (built inside the image)
+dist/
+*.tsbuildinfo
+
+# Git / GitHub
+.git/
+.github/
+
+# Tests & e2e
+tests/
+bruno/
+coverage/
+vitest.config.ts
+tsconfig.test.json
+
+# Env & secrets (no .env needed at build; runtime env is injected)
+.env
+.env.*
+
+# Docs & project files (not copied by the Dockerfile)
+*.md
+CLAUDE.md
+
+# Docker itself
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Caches / logs
+*.log
+.eslintcache
+
+# Editors / OS / tooling
+.vscode/
+.idea/
+.claude/
+.DS_Store
+Thumbs.db
+pnpm-workspace.local.yaml

@@ -1,0 +1,34 @@
+meta {
+  name: Login
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/api/v1/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "testuser@example.com",
+    "password": "password123"
+  }
+}
+
+script:post-response {
+  bru.setVar("accessToken", res.getBody().data.accessToken);
+  bru.setVar("refreshToken", res.getBody().data.refreshToken);
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("should return tokens", function() {
+    expect(res.getBody().data).to.have.property("accessToken");
+    expect(res.getBody().data).to.have.property("refreshToken");
+  });
+}

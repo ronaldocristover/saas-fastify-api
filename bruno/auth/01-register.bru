@@ -1,0 +1,43 @@
+meta {
+  name: Register
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host}}/api/v1/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "testuser@example.com",
+    "password": "password123",
+    "fullName": "Test User"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("accessToken", res.getBody().data.accessToken);
+    bru.setVar("refreshToken", res.getBody().data.refreshToken);
+    bru.setVar("userId", res.getBody().data.user.id);
+  }
+}
+
+tests {
+  test("should create or already exist (201 or 409)", function() {
+    expect([201, 409]).to.include(res.getStatus());
+  });
+
+  test("should return user data when created", function() {
+    if (res.getStatus() === 201) {
+      expect(res.getBody()).to.have.property("data");
+      expect(res.getBody().data).to.have.property("user");
+      expect(res.getBody().data).to.have.property("accessToken");
+      expect(res.getBody().data).to.have.property("refreshToken");
+      expect(res.getBody().data.user.email).to.equal("testuser@example.com");
+    }
+  });
+}

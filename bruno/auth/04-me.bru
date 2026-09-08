@@ -1,0 +1,27 @@
+meta {
+  name: Get Me
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host}}/api/v1/auth/me
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("should return user profile", function() {
+    expect(res.getBody().data).to.have.property("id");
+    expect(res.getBody().data).to.have.property("email");
+    expect(res.getBody().data).to.have.property("fullName");
+    expect(res.getBody().data).to.have.property("role");
+  });
+}

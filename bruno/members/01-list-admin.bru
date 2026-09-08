@@ -1,0 +1,44 @@
+meta {
+  name: List Members (Admin)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/api/v1/members?page=1&limit=10
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{adminAccessToken}}
+}
+
+script:post-response {
+  const members = res.getBody().data;
+  if (members && members.length > 0) {
+    bru.setVar("memberId", members[0].id);
+  }
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("should return paginated data", function() {
+    expect(res.getBody()).to.have.property("data");
+    expect(res.getBody()).to.have.property("meta");
+    expect(res.getBody().data).to.be.an("array");
+    expect(res.getBody().meta).to.have.property("page");
+    expect(res.getBody().meta).to.have.property("limit");
+    expect(res.getBody().meta).to.have.property("total");
+    expect(res.getBody().meta).to.have.property("totalPages");
+  });
+
+  test("should not expose password hashes", function() {
+    const members = res.getBody().data;
+    if (members.length > 0) {
+      expect(members[0]).to.not.have.property("passwordHash");
+    }
+  });
+}

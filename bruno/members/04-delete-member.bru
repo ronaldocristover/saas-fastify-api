@@ -1,0 +1,20 @@
+meta {
+  name: Delete Member
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{host}}/api/v1/members/{{memberId}}
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{adminAccessToken}}
+}
+
+tests {
+  test("should return 204", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+}
