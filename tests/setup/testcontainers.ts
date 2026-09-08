@@ -14,8 +14,10 @@ async function doStart(): Promise<string> {
   const url = container.getConnectionUri()
   process.env.DATABASE_URL = url
 
-  // Run drizzle-kit migrate against the fresh database
-  execSync('bunx drizzle-kit migrate', {
+  // Run drizzle-kit migrate against the fresh database. drizzle-kit is a
+  // devDependency, so resolve the local binary directly (bunx would try to
+  // download the package into a temp dir where the config's imports fail).
+  execSync('bun x drizzle-kit migrate', {
     cwd: process.cwd(),
     stdio: 'pipe',
     env: { ...process.env, DATABASE_URL: url },
