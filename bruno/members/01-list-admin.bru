@@ -16,7 +16,10 @@ headers {
 script:post-response {
   const members = res.getBody().data;
   if (members && members.length > 0) {
-    bru.setVar("memberId", members[0].id);
+    // Pick a non-admin member: the delete test below soft-deletes this id,
+    // and deleting the seeded admin would break later collection runs.
+    const target = members.find((m) => m.email !== "admin@example.com") || members[0];
+    bru.setVar("memberId", target.id);
   }
 }
 

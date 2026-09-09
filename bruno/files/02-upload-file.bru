@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{host}}/api/v1/files/upload
-  body: multipart-form
+  body: multipartForm
   auth: none
 }
 
@@ -15,7 +15,7 @@ headers {
 }
 
 body:multipart-form {
-  file: @example.txt
+  file: @file(files/example.txt)
 }
 
 script:post-response {

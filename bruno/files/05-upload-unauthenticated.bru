@@ -6,12 +6,12 @@ meta {
 
 post {
   url: {{host}}/api/v1/files/upload
-  body: multipart-form
+  body: multipartForm
   auth: none
 }
 
 body:multipart-form {
-  file: @example.txt
+  file: @file(files/example.txt)
 }
 
 tests {

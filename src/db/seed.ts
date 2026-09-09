@@ -18,21 +18,24 @@ const members = [
 async function seed() {
   const db = getDb()
 
-  // Upsert admin.
+  // Upsert admin, reviving a prior soft-delete so reseeding restores the
+  // intended seed account (the API's DELETE route may have removed it).
   const adminHash = await hashPassword(ADMIN_PASSWORD)
   await db.execute(sql`
-    INSERT INTO users (email, password_hash, full_name, role)
-    VALUES (${ADMIN_EMAIL}, ${adminHash}, 'Admin', 'admin')
-    ON CONFLICT (email) DO UPDATE SET password_hash = ${adminHash}, full_name = 'Admin', role = 'admin'
+    INSERT INTO users (email, password_hash, full_name, role, deleted_at)
+    VALUES (${ADMIN_EMAIL}, ${adminHash}, 'Admin', 'admin', NULL)
+    ON CONFLICT (email) DO UPDATE SET
+      password_hash = ${adminHash}, full_name = 'Admin', role = 'admin', deleted_at = NULL
   `)
 
-  // Upsert sample members.
+  // Upsert sample members (also reviving any soft-delete).
   for (const m of members) {
     const hash = await hashPassword('password123')
     await db.execute(sql`
-      INSERT INTO users (email, password_hash, full_name, role)
-      VALUES (${m.email}, ${hash}, ${m.fullName}, 'member')
-      ON CONFLICT (email) DO UPDATE SET full_name = ${m.fullName}, password_hash = ${hash}
+      INSERT INTO users (email, password_hash, full_name, role, deleted_at)
+      VALUES (${m.email}, ${hash}, ${m.fullName}, 'member', NULL)
+      ON CONFLICT (email) DO UPDATE SET
+        full_name = ${m.fullName}, password_hash = ${hash}, deleted_at = NULL
     `)
   }
 
