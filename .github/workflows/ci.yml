@@ -85,6 +85,9 @@ jobs:
           S3_ACCESS_KEY_ID: ci-access-key
           S3_SECRET_ACCESS_KEY: ci-secret-key
 
+      - name: Build
+        run: bun run build
+
       - name: Start server
         run: |
           bun run start &
