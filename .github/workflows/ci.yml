@@ -107,4 +107,6 @@ jobs:
           S3_SECRET_ACCESS_KEY: ci-secret-key
 
       - name: Run Bruno e2e tests
-        run: cd bruno && bru run --env local
+        # Run through `bun run` so node_modules/.bin is on PATH — a bare `bru`
+        # command would not resolve (bun install does not add .bin to PATH).
+        run: bun run bruno:run
