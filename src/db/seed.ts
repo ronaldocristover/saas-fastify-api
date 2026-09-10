@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm'
-import { getDb, getPool } from './index.js'
-import { hashPassword } from '../common/password.js'
+import { getDb, getPool } from './index'
+import { hashPassword } from '../common/password'
 
 // Seed script: creates an admin user and sample members.
 // Safe to run multiple times (idempotent via UPSERT on email).

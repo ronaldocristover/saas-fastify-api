@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { parsePagination, buildMeta } from '../../src/common/pagination.js'
+import { parsePagination, buildMeta } from '../../src/common/pagination'
 
 describe('parsePagination', () => {
   it('clamps page to >= 1', () => {

@@ -25,6 +25,6 @@ process.env.S3_SECRET_ACCESS_KEY ??= 'test'
 process.env.PRESIGNED_URL_EXPIRY ??= '3600'
 
 if (process.env.PG_TEST === '1') {
-  const { startTestcontainer } = await import('./testcontainers.js')
+  const { startTestcontainer } = await import('./testcontainers')
   await startTestcontainer()
 }

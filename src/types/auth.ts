@@ -1,4 +1,4 @@
-import type { UserRole } from './roles.js'
+import type { UserRole } from './roles'
 
 export interface AuthenticatedUser {
   id: string

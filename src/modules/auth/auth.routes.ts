@@ -1,16 +1,16 @@
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import type { ZodTypeProvider } from '@fastify/type-provider-zod'
-import { createAuthRepository } from './auth.repository.js'
-import { createAuthService } from './auth.service.js'
-import { forbidden, unauthorized } from '../../common/errors.js'
+import { createAuthRepository } from './auth.repository'
+import { createAuthService } from './auth.service'
+import { forbidden, unauthorized } from '../../common/errors'
 import {
   registerSchema,
   loginSchema,
   refreshSchema,
   logoutSchema,
   meSchema,
-} from './auth.schemas.js'
-import { config } from '../../config/env.js'
+} from './auth.schemas'
+import { config } from '../../config/env'
 
 const authRateLimit = {
   max: config.RATE_LIMIT_AUTH_MAX,

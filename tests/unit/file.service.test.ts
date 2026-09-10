@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach, mock } from 'bun:test'
-import { createFileService } from '../../src/modules/file/file.service.js'
-import type { FileRepository } from '../../src/modules/file/file.repository.js'
+import { createFileService } from '../../src/modules/file/file.service'
+import type { FileRepository } from '../../src/modules/file/file.repository'
 
 // bun:test module mocks persist for the process, so they MUST be restored in
 // afterEach or they leak into other test files (bun test keeps one module

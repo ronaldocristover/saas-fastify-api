@@ -1,7 +1,7 @@
 import fp from 'fastify-plugin'
 import type { FastifyInstance } from 'fastify'
 import { hasZodFastifySchemaValidationErrors } from '@fastify/type-provider-zod'
-import { AppError } from '../common/errors.js'
+import { AppError } from '../common/errors'
 
 // Unified error envelope: { error: { code, message, details? } }.
 interface ErrorBody {

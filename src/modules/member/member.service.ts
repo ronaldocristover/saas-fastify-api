@@ -1,8 +1,8 @@
-import { createMemberRepository, type MemberRepository } from './member.repository.js'
-import { forbidden } from '../../common/errors.js'
-import { parsePagination } from '../../common/pagination.js'
-import type { UserRole } from '../../types/roles.js'
-import type { AuthenticatedUser } from '../../types/auth.js'
+import { createMemberRepository, type MemberRepository } from './member.repository'
+import { forbidden } from '../../common/errors'
+import { parsePagination } from '../../common/pagination'
+import type { UserRole } from '../../types/roles'
+import type { AuthenticatedUser } from '../../types/auth'
 
 export function createMemberService(
   db: Parameters<typeof createMemberRepository>[0],
