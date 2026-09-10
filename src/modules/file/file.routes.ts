@@ -2,12 +2,12 @@ import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import type { ZodTypeProvider } from '@fastify/type-provider-zod'
 import multipart from '@fastify/multipart'
 import { stat } from 'node:fs/promises'
-import { createFileService } from './file.service.js'
+import { createFileService } from './file.service'
 import {
   uploadFileSchema,
   getFileDownloadUrlSchema,
   listFilesSchema,
-} from './file.schemas.js'
+} from './file.schemas'
 
 export default async function fileRoutes(
   fastify: FastifyInstance,

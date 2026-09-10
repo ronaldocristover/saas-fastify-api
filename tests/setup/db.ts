@@ -1,5 +1,5 @@
 import type { Pool } from 'pg'
-import { buildApp } from '../../src/app.js'
+import { buildApp } from '../../src/app'
 import type { FastifyInstance } from 'fastify'
 
 export async function buildTestApp(): Promise<FastifyInstance> {

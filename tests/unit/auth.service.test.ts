@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'bun:test'
-import { createAuthService, type AuthService } from '../../src/modules/auth/auth.service.js'
-import type { AuthRepositoryShape } from '../../src/modules/auth/auth.service.js'
-import { hashPassword } from '../../src/common/password.js'
+import { createAuthService, type AuthService } from '../../src/modules/auth/auth.service'
+import type { AuthRepositoryShape } from '../../src/modules/auth/auth.service'
+import { hashPassword } from '../../src/common/password'
 
 describe('AuthService', () => {
   let service: AuthService

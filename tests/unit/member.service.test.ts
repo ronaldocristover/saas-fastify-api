@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'bun:test'
-import { createMemberService } from '../../src/modules/member/member.service.js'
-import type { MemberRepository } from '../../src/modules/member/member.repository.js'
-import { notFound } from '../../src/common/errors.js'
+import { createMemberService } from '../../src/modules/member/member.service'
+import type { MemberRepository } from '../../src/modules/member/member.repository'
+import { notFound } from '../../src/common/errors'
 
 describe('MemberService', () => {
   let service: ReturnType<typeof createMemberService>

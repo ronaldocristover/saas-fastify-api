@@ -1,7 +1,7 @@
-import './config/env.js' // Loads env vars at the top-level first.
-import { buildApp } from './app.js'
-import { config } from './config/env.js'
-import { cleanupRefreshTokens } from './db/cleanup.js'
+import './config/env' // Loads env vars at the top-level first.
+import { buildApp } from './app'
+import { config } from './config/env'
+import { cleanupRefreshTokens } from './db/cleanup'
 async function main() {
   const app = await buildApp()
 

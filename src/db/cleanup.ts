@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { getDb } from './index.js'
+import { getDb } from './index'
 
 /**
  * Remove expired and long-revoked refresh tokens.

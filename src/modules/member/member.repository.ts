@@ -1,9 +1,9 @@
 import { and, asc, count, eq, ilike, isNull, or } from 'drizzle-orm'
-import { users } from '../../db/schema.js'
-import { type AppDb } from '../../db/index.js'
-import { notFound } from '../../common/errors.js'
-import { buildMeta, type Page, type PageMeta } from '../../common/pagination.js'
-import type { UserRole } from '../../types/roles.js'
+import { users } from '../../db/schema'
+import { type AppDb } from '../../db/index'
+import { notFound } from '../../common/errors'
+import { buildMeta, type Page, type PageMeta } from '../../common/pagination'
+import type { UserRole } from '../../types/roles'
 
 /** Public shape of a member. Never exposes passwordHash or deletedAt. */
 export interface PublicMember {

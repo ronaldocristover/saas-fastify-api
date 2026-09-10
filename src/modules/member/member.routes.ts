@@ -1,12 +1,12 @@
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import type { ZodTypeProvider } from '@fastify/type-provider-zod'
-import { createMemberService } from './member.service.js'
+import { createMemberService } from './member.service'
 import {
   listMembersSchema,
   getMemberSchema,
   updateMemberSchema,
   deleteMemberSchema,
-} from './member.schemas.js'
+} from './member.schemas'
 
 export default async function memberRoutes(
   fastify: FastifyInstance,

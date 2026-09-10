@@ -1,7 +1,7 @@
 import { asc, count, eq } from 'drizzle-orm'
-import { files, type FileRecord } from '../../db/schema.js'
-import { type AppDb } from '../../db/index.js'
-import { buildMeta, type Page, type PageMeta } from '../../common/pagination.js'
+import { files, type FileRecord } from '../../db/schema'
+import { type AppDb } from '../../db/index'
+import { buildMeta, type Page, type PageMeta } from '../../common/pagination'
 
 export interface PublicFileRecord {
   id: string

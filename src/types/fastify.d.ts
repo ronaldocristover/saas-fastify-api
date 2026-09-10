@@ -1,5 +1,5 @@
 import type { FastifyJwtNamespace } from '@fastify/jwt'
-import type { UserRole } from './roles.js'
+import type { UserRole } from './roles'
 
 declare module '@fastify/jwt' {
   /**

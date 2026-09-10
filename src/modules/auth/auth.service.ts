@@ -1,10 +1,10 @@
 import { createHash, randomUUID } from 'node:crypto'
-import type { User } from '../../db/schema.js'
-import { hashPassword, verifyPassword } from '../../common/password.js'
-import { conflict, notFound, unauthorized } from '../../common/errors.js'
-import type { UserRole } from '../../types/roles.js'
-import { createAuthRepository } from './auth.repository.js'
-import { type AppDb } from '../../db/index.js'
+import type { User } from '../../db/schema'
+import { hashPassword, verifyPassword } from '../../common/password'
+import { conflict, notFound, unauthorized } from '../../common/errors'
+import type { UserRole } from '../../types/roles'
+import { createAuthRepository } from './auth.repository'
+import { type AppDb } from '../../db/index'
 
 /** Public user shape. Never exposes passwordHash or deletedAt. */
 export interface PublicUser {

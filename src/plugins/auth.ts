@@ -2,9 +2,9 @@ import fp from 'fastify-plugin'
 import type { FastifyInstance, FastifyRequest } from 'fastify'
 import fjwt from '@fastify/jwt'
 import cookie from '@fastify/cookie'
-import { config } from '../config/env.js'
-import { forbidden, unauthorized } from '../common/errors.js'
-import type { UserRole } from '../types/roles.js'
+import { config } from '../config/env'
+import { forbidden, unauthorized } from '../common/errors'
+import type { UserRole } from '../types/roles'
 
 // Type augmentation lives in src/types/fastify.d.ts: it declares `user` on
 // FastifyJWT (consumed by @fastify/jwt to type request.user), plus the

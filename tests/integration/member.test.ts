@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'bun:test'
-import { buildApp } from '../../src/app.js'
+import { buildApp } from '../../src/app'
 import { Pool } from 'pg'
 import type { FastifyInstance } from 'fastify'
-import { startTestcontainer } from '../setup/testcontainers.js'
+import { startTestcontainer } from '../setup/testcontainers'
 
 
 describe('Member API', () => {

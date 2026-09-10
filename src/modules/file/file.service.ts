@@ -2,10 +2,10 @@ import { randomUUID } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { PutObjectCommand, GetObjectCommand, type S3Client } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-import { createFileRepository, type FileRepository } from './file.repository.js'
-import { notFound, forbidden } from '../../common/errors.js'
-import { parsePagination } from '../../common/pagination.js'
-import type { AuthenticatedUser } from '../../types/auth.js'
+import { createFileRepository, type FileRepository } from './file.repository'
+import { notFound, forbidden } from '../../common/errors'
+import { parsePagination } from '../../common/pagination'
+import type { AuthenticatedUser } from '../../types/auth'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 

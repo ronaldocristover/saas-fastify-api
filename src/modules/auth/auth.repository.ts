@@ -1,7 +1,7 @@
 import { and, eq, isNull, sql } from 'drizzle-orm'
-import { users, refreshTokens, type User } from '../../db/schema.js'
-import { type AppDb } from '../../db/index.js'
-import type { UserRole } from '../../types/roles.js'
+import { users, refreshTokens, type User } from '../../db/schema'
+import { type AppDb } from '../../db/index'
+import type { UserRole } from '../../types/roles'
 
 export interface AuthRepository {
   findByEmail(email: string): Promise<User | undefined>

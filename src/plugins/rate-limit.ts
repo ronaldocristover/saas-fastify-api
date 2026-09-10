@@ -1,7 +1,7 @@
 import fp from 'fastify-plugin'
 import type { FastifyInstance } from 'fastify'
 import rateLimit from '@fastify/rate-limit'
-import { config } from '../config/env.js'
+import { config } from '../config/env'
 
 // Global rate limit (300 req/min by default). Individual routes can override
 // via routeOptions.config.rateLimit. The in-memory store is per-process only;

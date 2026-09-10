@@ -1,7 +1,7 @@
 import fp from 'fastify-plugin'
 import type { FastifyInstance } from 'fastify'
 import { S3Client } from '@aws-sdk/client-s3'
-import { config } from '../config/env.js'
+import { config } from '../config/env'
 
 declare module 'fastify' {
   interface FastifyInstance {
