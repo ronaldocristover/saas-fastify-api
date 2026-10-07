@@ -1,2 +1,0 @@
-This is a sample file for testing the upload endpoint.
-Hello from Bruno!
