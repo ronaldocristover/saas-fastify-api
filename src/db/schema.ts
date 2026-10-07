@@ -1,6 +1,5 @@
 import { index, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
-// Single users table: members are users with role = 'member', admins with role = 'admin'.
 export const users = pgTable(
   'users',
   {
@@ -19,8 +18,6 @@ export const users = pgTable(
   ],
 )
 
-// Refresh tokens: JWT value is stored hashed (SHA-256) so a leak of the table
-// does not leak usable tokens. Rotated on every refresh (old row revoked).
 export const refreshTokens = pgTable(
   'refresh_tokens',
   {
@@ -44,7 +41,6 @@ export type NewUser = typeof users.$inferInsert
 export type RefreshToken = typeof refreshTokens.$inferSelect
 export type NewRefreshToken = typeof refreshTokens.$inferInsert
 
-// File uploads: metadata for files stored in S3.
 export const files = pgTable(
   'files',
   {

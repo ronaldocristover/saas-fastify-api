@@ -12,7 +12,7 @@ Security-hardened, production-ready Fastify 5 + PostgreSQL API with layered arch
 - **Security**: timing-safe login, Pino log redaction, static 404 responses, min-length JWT secrets, Swagger opt-in
 - **Observability**: Pino JSON logs (redacted), `/health` + `/ready`, request-ID correlation
 - **Docs**: Swagger UI at `/documentation` (requires `SWAGGER_ENABLED=true`)
-- **Tests**: Bun test (56 tests across 7 files — unit + integration via testcontainers), Bruno e2e (`@usebruno/cli`)
+- **Tests**: Bun test (58 tests across 7 files — unit + integration via testcontainers), Bruno e2e (`@usebruno/cli`)
 - **Docker**: Postgres 17 in docker-compose (port 5434), multi-stage production Dockerfile with Bun
 
 ## Quick start
@@ -131,7 +131,7 @@ Layering rules:
 
 - **Unit** (`tests/unit`): services tested against mocked repositories
 - **Integration** (`tests/integration`): full app via `app.inject()` against real Postgres (testcontainers), tables truncated per test
-- **Total**: 56 tests across 7 files (auth service, member service, pagination, auth integration, member integration, file service, file integration)
+- **Total**: 58 tests across 7 files (auth service, member service, pagination, auth integration, member integration, file service, file integration)
 - **E2E**: Bruno collection chains login -> authenticated requests via runtime variables
 
 ## Docker

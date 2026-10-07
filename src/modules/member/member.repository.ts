@@ -5,13 +5,12 @@ import { notFound } from '../../common/errors'
 import { buildMeta, type Page, type PageMeta } from '../../common/pagination'
 import type { UserRole } from '../../types/roles'
 
-/** Public shape of a member. Never exposes passwordHash or deletedAt. */
 export interface PublicMember {
   id: string
   email: string
   fullName: string
   role: UserRole
-  createdAt: string // ISO datetime string for JSON serialization
+  createdAt: string
   updatedAt: string
 }
 
@@ -49,7 +48,6 @@ export function createMemberRepository(db: AppDb): MemberRepository {
     async list({ page, search, role }): Promise<{ data: PublicMember[]; meta: PageMeta }> {
       const conditions = [isNull(users.deletedAt)]
       if (search) {
-        // Match on name or email so admins can find members either way.
         conditions.push(
           or(ilike(users.fullName, `%${search}%`), ilike(users.email, `%${search}%`))!,
         )
@@ -103,7 +101,6 @@ export function createMemberRepository(db: AppDb): MemberRepository {
       return toPublicMember(user)
     },
 
-    /** Soft delete: sets deleted_at; the row stays for audit purposes. */
     async softDelete(id) {
       const [updated] = await db
         .update(users)

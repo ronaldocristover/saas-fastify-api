@@ -4,8 +4,6 @@ import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import { jsonSchemaTransform } from '@fastify/type-provider-zod'
 
-// OpenAPI docs generated from the same Zod schemas used for validation.
-// Disabled in production unless SWAGGER_ENABLED=true.
 export default fp(
   async (fastify: FastifyInstance) => {
     await fastify.register(swagger, {

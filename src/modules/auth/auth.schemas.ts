@@ -1,7 +1,5 @@
 import { z } from 'zod/v4'
 
-// Shared public-user schema. Dates serialize to ISO strings in JSON; services
-// hand these shapes already-converted (see toPublicUser in auth.service).
 const publicUserSchema = z.object({
   id: z.string().uuid(),
   email: z.string(),

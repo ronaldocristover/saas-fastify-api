@@ -3,6 +3,24 @@ import { buildApp } from '../../src/app'
 import { Pool } from 'pg'
 import type { FastifyInstance } from 'fastify'
 import { startTestcontainer } from '../setup/testcontainers'
+import { MAX_FILE_SIZE } from '../../src/modules/file/file.service'
+
+function multipartPayload(
+  boundary: string,
+  filename: string,
+  contentType: string,
+  content: Buffer | string,
+): Buffer {
+  return Buffer.concat([
+    Buffer.from(
+      `--${boundary}\r\n` +
+        `Content-Disposition: form-data; name="file"; filename="${filename}"\r\n` +
+        `Content-Type: ${contentType}\r\n\r\n`,
+    ),
+    Buffer.isBuffer(content) ? content : Buffer.from(content),
+    Buffer.from(`\r\n--${boundary}--\r\n`),
+  ])
+}
 
 describe('File API', () => {
   let app: FastifyInstance
@@ -11,17 +29,10 @@ describe('File API', () => {
   let userId: string
 
   beforeAll(async () => {
-    // Idempotent: starts the container on first call in the process, resolves
-    // immediately afterwards. The preload skips it unless PG_TEST=1 (bunfig
-    // preload gets no argv, so it cannot detect which files will run).
     await startTestcontainer()
     pool = new Pool({ connectionString: process.env.DATABASE_URL })
     app = await buildApp()
 
-    // Mock S3 client: intercept PutObject so tests don't need real S3.
-    // GetObjectCommand falls through to the real client — the presigner only
-    // signs locally and never hits the network, so download-url tests still
-    // get a genuinely signed URL with X-Amz-Signature.
     const originalSend = app.s3.send.bind(app.s3)
     app.s3.send = vi.fn().mockImplementation(async (command: any) => {
       if (command.constructor?.name === 'PutObjectCommand') {
@@ -36,14 +47,11 @@ describe('File API', () => {
   afterAll(async () => {
     await app.close()
     await pool.end()
-    // Container teardown is handled by Ryuk when the test process exits; the
-    // preload owns the lifecycle for multi-file runs.
   })
 
   beforeEach(async () => {
     await pool.query('TRUNCATE TABLE users, refresh_tokens, files CASCADE')
 
-    // Register a user and get token
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/register',
@@ -60,15 +68,7 @@ describe('File API', () => {
   describe('POST /api/v1/files/upload', () => {
     it('should upload a file and return metadata', async () => {
       const boundary = '----TestBoundary'
-      const fileContent = 'Hello, World!'
-      const body = [
-        `--${boundary}`,
-        'Content-Disposition: form-data; name="file"; filename="hello.txt"',
-        'Content-Type: text/plain',
-        '',
-        fileContent,
-        `--${boundary}--`,
-      ].join('\r\n')
+      const body = multipartPayload(boundary, 'hello.txt', 'text/plain', 'Hello, World!')
 
       const response = await app.inject({
         method: 'POST',
@@ -87,6 +87,29 @@ describe('File API', () => {
       expect(json.data.mimeType).toBe('text/plain')
       expect(json.data.userId).toBe(userId)
       expect(json.data.size).toBeGreaterThan(0)
+    })
+
+    it('should reject uploads over the 10MB limit with 413 FILE_TOO_LARGE', async () => {
+      const boundary = '----BigBoundary'
+      const payload = multipartPayload(
+        boundary,
+        'big.bin',
+        'application/octet-stream',
+        Buffer.alloc(MAX_FILE_SIZE + 1),
+      )
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/files/upload',
+        headers: {
+          authorization: `Bearer ${userToken}`,
+          'content-type': `multipart/form-data; boundary=${boundary}`,
+        },
+        payload,
+      })
+
+      expect(response.statusCode).toBe(413)
+      expect(response.json().error.code).toBe('FILE_TOO_LARGE')
     })
 
     it('should reject unauthenticated uploads', async () => {
@@ -123,16 +146,8 @@ describe('File API', () => {
 
   describe('GET /api/v1/files/:id/download-url', () => {
     it('should return a presigned URL for own file', async () => {
-      // Upload first
       const boundary = '----TestBoundary'
-      const body = [
-        `--${boundary}`,
-        'Content-Disposition: form-data; name="file"; filename="doc.pdf"',
-        'Content-Type: application/pdf',
-        '',
-        'pdf-content',
-        `--${boundary}--`,
-      ].join('\r\n')
+      const body = multipartPayload(boundary, 'doc.pdf', 'application/pdf', 'pdf-content')
 
       const uploadRes = await app.inject({
         method: 'POST',
@@ -153,10 +168,6 @@ describe('File API', () => {
 
       expect(response.statusCode).toBe(200)
       const json = response.json()
-      // The presigned URL is produced by the AWS SDK; its format varies by
-      // SDK version and environment. Just verify we got a non-empty URL and
-      // the expected expiry — the actual signing is covered by the SDK's own
-      // test suite and by the fact that the S3 client was injected here.
       expect(json.data.url).toBeTypeOf('string')
       expect(json.data.url.length).toBeGreaterThan(0)
       expect(json.data.expiresIn).toBe(3600)

@@ -21,9 +21,6 @@ export default async function authRoutes(
   fastify: FastifyInstance,
   _opts: FastifyPluginOptions,
 ) {
-  // The service signs via the JWT namespace map (`fastify.jwt.access.sign`).
-  // @fastify/jwt exposes instance-level signers there, returning Promises
-  // (JwtSignFunction); the reply-level name decorators are for handlers only.
   const service = createAuthService(
     fastify.db,
     {
@@ -35,7 +32,6 @@ export default async function authRoutes(
     createAuthRepository(fastify.db),
   )
 
-  // POST /register
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/register',
@@ -47,7 +43,6 @@ export default async function authRoutes(
     },
   })
 
-  // POST /login
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/login',
@@ -59,7 +54,6 @@ export default async function authRoutes(
     },
   })
 
-  // POST /refresh
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/refresh',
@@ -71,7 +65,6 @@ export default async function authRoutes(
     },
   })
 
-  // POST /logout (requires auth: only your own session should be revocable)
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/logout',
@@ -79,7 +72,6 @@ export default async function authRoutes(
     onRequest: [fastify.authenticate],
     handler: async (request, reply) => {
       const refreshToken = request.body.refreshToken
-      // Verify refresh token belongs to the authenticated user
       const [, payloadB64] = refreshToken.split('.')
       if (!payloadB64) throw unauthorized('INVALID_TOKEN', 'Invalid refresh token')
       let sub: string
@@ -93,7 +85,6 @@ export default async function authRoutes(
     },
   })
 
-  // GET /me (requires auth)
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: 'GET',
     url: '/me',

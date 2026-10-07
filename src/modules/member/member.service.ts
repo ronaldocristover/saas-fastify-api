@@ -19,10 +19,6 @@ export function createMemberService(
       return repo.findById(id)
     },
 
-    /**
-     * Admin may update any member (including role); members may only update
-     * their own fullName. Only admins may change roles.
-     */
     async update(
       requester: AuthenticatedUser,
       targetId: string,

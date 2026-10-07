@@ -18,8 +18,14 @@ export const unauthorized = (code = 'UNAUTHORIZED', message = 'Unauthorized') =>
 export const forbidden = (code = 'FORBIDDEN', message = 'Forbidden') =>
   new AppError(403, code, message)
 
+export const badRequest = (code = 'BAD_REQUEST', message = 'Bad request') =>
+  new AppError(400, code, message)
+
 export const notFound = (code = 'NOT_FOUND', message = 'Not found') =>
   new AppError(404, code, message)
+
+export const payloadTooLarge = (code = 'PAYLOAD_TOO_LARGE', message = 'Payload too large') =>
+  new AppError(413, code, message)
 
 export const conflict = (code = 'CONFLICT', message = 'Conflict') =>
   new AppError(409, code, message)

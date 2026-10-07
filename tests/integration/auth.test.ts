@@ -10,9 +10,6 @@ describe('Auth API', () => {
   let pool: Pool
 
   beforeAll(async () => {
-    // Idempotent: starts the container on first call in the process, resolves
-    // immediately afterwards. The preload skips it unless PG_TEST=1 (bunfig
-    // preload gets no argv, so it cannot detect which files will run).
     await startTestcontainer()
     pool = new Pool({ connectionString: process.env.DATABASE_URL })
     app = await buildApp()
@@ -22,8 +19,6 @@ describe('Auth API', () => {
   afterAll(async () => {
     await app.close()
     await pool.end()
-    // Container teardown is handled by Ryuk when the test process exits; the
-    // preload owns the lifecycle for multi-file runs.
   })
 
   beforeEach(async () => {
@@ -91,7 +86,6 @@ describe('Auth API', () => {
 
   describe('POST /api/v1/auth/login', () => {
     it('should login with valid credentials', async () => {
-      // Register first
       await app.inject({
         method: 'POST',
         url: '/api/v1/auth/register',
@@ -144,7 +138,6 @@ describe('Auth API', () => {
 
   describe('GET /api/v1/auth/me', () => {
     it('should return current user', async () => {
-      // Register and get token
       const registerResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/auth/register',
@@ -208,9 +201,7 @@ describe('Auth API', () => {
       await app.inject({ method: 'POST', url: '/api/v1/auth/register', payload: { email: 'revoke@test.com', password: 'password123', fullName: 'Revoke User' } })
       const loginRes = await app.inject({ method: 'POST', url: '/api/v1/auth/login', payload: { email: 'revoke@test.com', password: 'password123' } })
       const refreshToken = loginRes.json().data.refreshToken
-      // Use it once
       await app.inject({ method: 'POST', url: '/api/v1/auth/refresh', payload: { refreshToken } })
-      // Try again — should fail
       const response = await app.inject({ method: 'POST', url: '/api/v1/auth/refresh', payload: { refreshToken } })
       expect(response.statusCode).toBe(401)
     })
@@ -225,7 +216,6 @@ describe('Auth API', () => {
       const logoutRes = await app.inject({ method: 'POST', url: '/api/v1/auth/logout', payload: { refreshToken }, headers: { authorization: `Bearer ${accessToken}` } })
       expect(logoutRes.statusCode).toBe(204)
 
-      // Try to use revoked refresh token
       const refreshRes = await app.inject({ method: 'POST', url: '/api/v1/auth/refresh', payload: { refreshToken } })
       expect(refreshRes.statusCode).toBe(401)
     })

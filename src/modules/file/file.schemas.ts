@@ -17,7 +17,6 @@ const pageMetaSchema = z.object({
 })
 
 export const uploadFileSchema = {
-  // No body schema — multipart is parsed by @fastify/multipart, not Zod.
   response: {
     201: z.object({ data: fileRecordSchema }),
   },

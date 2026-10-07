@@ -3,11 +3,14 @@ import { createReadStream } from 'node:fs'
 import { PutObjectCommand, GetObjectCommand, type S3Client } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { createFileRepository, type FileRepository } from './file.repository'
-import { notFound, forbidden } from '../../common/errors'
+import { notFound, forbidden, payloadTooLarge } from '../../common/errors'
 import { parsePagination } from '../../common/pagination'
 import type { AuthenticatedUser } from '../../types/auth'
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+export const MAX_FILE_SIZE = 10 * 1024 * 1024
+
+export const fileTooLarge = () =>
+  payloadTooLarge('FILE_TOO_LARGE', `File exceeds maximum size of ${MAX_FILE_SIZE} bytes`)
 
 export interface FileServiceDeps {
   s3: S3Client
@@ -31,7 +34,7 @@ export function createFileService(
       file: { filepath: string; filename: string; mimetype: string; size: number },
     ) {
       if (file.size > MAX_FILE_SIZE) {
-        throw new Error('File exceeds maximum size of 10MB')
+        throw fileTooLarge()
       }
 
       const s3Key = buildS3Key(userId, file.filename)
@@ -65,7 +68,6 @@ export function createFileService(
         throw notFound('FILE_NOT_FOUND', 'File not found')
       }
 
-      // Members can only get download URLs for their own files
       if (requester.role !== 'admin' && record.userId !== requester.id) {
         throw forbidden('FORBIDDEN', 'You can only access your own files')
       }
@@ -87,7 +89,6 @@ export function createFileService(
       input: { page?: number | null; limit?: number | null },
     ) {
       const page = parsePagination(input.page, input.limit)
-      // Admin sees all files; members see only their own
       const userId = requester.role === 'admin' ? undefined : requester.id
       return repo.list({ page, userId })
     },

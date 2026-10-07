@@ -8,7 +8,6 @@ declare module 'fastify' {
   }
 }
 
-// Decorates fastify.db with the Drizzle instance and closes the pg pool on shutdown.
 export default fp(
   async (fastify: FastifyInstance) => {
     const db = getDb()

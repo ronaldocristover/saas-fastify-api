@@ -1,11 +1,10 @@
-import './config/env' // Loads env vars at the top-level first.
+import './config/env'
 import { buildApp } from './app'
 import { config } from './config/env'
 import { cleanupRefreshTokens } from './db/cleanup'
 async function main() {
   const app = await buildApp()
 
-  // Graceful shutdown on SIGTERM / SIGINT.
   const shutdown = async (signal: string) => {
     app.log.info(`Received ${signal}, shutting down gracefully...`)
     const forceExit = setTimeout(() => {
@@ -28,7 +27,6 @@ async function main() {
 
   await app.listen({ port: config.PORT, host: '0.0.0.0' })
 
-  // Non-blocking cleanup on startup
   cleanupRefreshTokens()
     .then(n => { if (n > 0) app.log.info({ deleted: n }, 'Refresh token cleanup done') })
     .catch(() => {})

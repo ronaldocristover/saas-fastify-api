@@ -10,9 +10,6 @@ describe('Member API', () => {
   let pool: Pool
 
   beforeAll(async () => {
-    // Idempotent: starts the container on first call in the process, resolves
-    // immediately afterwards. The preload skips it unless PG_TEST=1 (bunfig
-    // preload gets no argv, so it cannot detect which files will run).
     await startTestcontainer()
     pool = new Pool({ connectionString: process.env.DATABASE_URL })
     app = await buildApp()
@@ -22,12 +19,8 @@ describe('Member API', () => {
   afterAll(async () => {
     await app.close()
     await pool.end()
-    // Container teardown is handled by Ryuk when the test process exits; the
-    // preload owns the lifecycle for multi-file runs.
   })
 
-  // Reset state before each test AND (re)create the admin + member used by
-  // every scenario, since beforeEach truncation wipes the beforeAll fixtures.
   let adminToken: string
   let memberToken: string
   let memberId: string
@@ -44,8 +37,6 @@ describe('Member API', () => {
         fullName: 'Admin User',
       },
     })
-    // Promote the freshly created admin account, then log in again so the
-    // access token carries the admin role claim.
     await pool.query("UPDATE users SET role = 'admin' WHERE email = 'admin@example.com'")
     const adminLoginRes = await app.inject({
       method: 'POST',
@@ -69,7 +60,6 @@ describe('Member API', () => {
 
   describe('GET /api/v1/members', () => {
     it('should allow admin to list members', async () => {
-      // Create some more members
       for (let i = 1; i <= 3; i++) {
         await app.inject({
           method: 'POST',
@@ -164,7 +154,6 @@ describe('Member API', () => {
 
       expect(response.statusCode).toBe(204)
 
-      // Verify member is soft deleted
       const getResponse = await app.inject({
         method: 'GET',
         url: `/api/v1/members/${memberId}`,

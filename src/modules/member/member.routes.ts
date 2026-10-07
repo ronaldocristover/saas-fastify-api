@@ -14,7 +14,6 @@ export default async function memberRoutes(
 ) {
   const service = createMemberService(fastify.db)
 
-  // GET / (admin only, paginated)
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: 'GET',
     url: '/',
@@ -26,7 +25,6 @@ export default async function memberRoutes(
     },
   })
 
-  // GET /:id (any authenticated user)
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: 'GET',
     url: '/:id',
@@ -38,7 +36,6 @@ export default async function memberRoutes(
     },
   })
 
-  // PATCH /:id (admin: any member incl. role; self: own fullName)
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: 'PATCH',
     url: '/:id',
@@ -50,7 +47,6 @@ export default async function memberRoutes(
     },
   })
 
-  // DELETE /:id (admin only, soft delete)
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: 'DELETE',
     url: '/:id',

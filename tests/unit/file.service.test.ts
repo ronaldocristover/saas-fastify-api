@@ -1,10 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, mock } from 'bun:test'
-import { createFileService } from '../../src/modules/file/file.service'
+import { createFileService, MAX_FILE_SIZE } from '../../src/modules/file/file.service'
 import type { FileRepository } from '../../src/modules/file/file.repository'
 
-// bun:test module mocks persist for the process, so they MUST be restored in
-// afterEach or they leak into other test files (bun test keeps one module
-// registry per worker when files run without --isolate).
 const getSignedUrlMock = vi.fn().mockResolvedValue('https://s3.example.com/signed')
 const createReadStreamMock = vi.fn().mockReturnValue({
   pipe: vi.fn(),
@@ -81,6 +78,22 @@ describe('FileService', () => {
       )
       expect(result.originalName).toBe('test.txt')
       expect(result.userId).toBe('user-1')
+    })
+
+    it('should reject files over the maximum size with a 413 AppError', async () => {
+      const promise = service.upload('user-1', {
+        filepath: '/tmp/big.bin',
+        filename: 'big.bin',
+        mimetype: 'application/octet-stream',
+        size: MAX_FILE_SIZE + 1,
+      })
+
+      await expect(promise).rejects.toMatchObject({
+        statusCode: 413,
+        code: 'FILE_TOO_LARGE',
+      })
+      expect(mockS3Send).not.toHaveBeenCalled()
+      expect(mockRepo.create).not.toHaveBeenCalled()
     })
   })
 

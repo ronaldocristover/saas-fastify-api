@@ -67,7 +67,6 @@ jobs:
           --health-timeout 5s
           --health-retries 10
           --health-start-period 10s
-        # MinIO serves the same container's data dir; need to override entrypoint
         command: server /data
 
     steps:
@@ -106,8 +105,6 @@ jobs:
         run: bun run build
 
       - name: Create MinIO bucket
-        # File-upload e2e tests PUT objects; provision the bucket the app is
-        # configured with (S3_BUCKET=ci-bucket) before starting the server.
         run: |
           curl -sfL https://dl.min.io/client/mc/release/linux-amd64/mc -o /tmp/mc
           chmod +x /tmp/mc
@@ -117,7 +114,6 @@ jobs:
       - name: Start server
         run: |
           bun run start &
-          # Wait for readiness
           for i in $(seq 1 30); do
             if curl -sf http://localhost:3000/ready > /dev/null; then
               echo "Server is ready"
@@ -137,6 +133,4 @@ jobs:
           S3_ENDPOINT: http://localhost:9000
 
       - name: Run Bruno e2e tests
-        # Run through `bun run` so node_modules/.bin is on PATH — a bare `bru`
-        # command would not resolve (bun install does not add .bin to PATH).
         run: bun run bruno:run

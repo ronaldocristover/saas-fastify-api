@@ -3,7 +3,6 @@ import type { FastifyInstance } from 'fastify'
 import { hasZodFastifySchemaValidationErrors } from '@fastify/type-provider-zod'
 import { AppError } from '../common/errors'
 
-// Unified error envelope: { error: { code, message, details? } }.
 interface ErrorBody {
   error: { code: string; message: string; details?: unknown }
 }
@@ -17,8 +16,6 @@ export default fp(
         return reply.code(error.statusCode).send(body)
       }
 
-      // The Zod type provider reports route validation as a FastifyError with
-      // a zod-specific `validation` array.
       if (hasZodFastifySchemaValidationErrors(error)) {
         const body: ErrorBody = {
           error: {
@@ -30,7 +27,6 @@ export default fp(
         return reply.code(422).send(body)
       }
 
-      // Framework errors (4xx): rate-limit 429, malformed JSON, etc.
       const statusCode = (error as { statusCode?: number }).statusCode ?? 500
       if (statusCode >= 400 && statusCode < 500) {
         const err = error as { code?: string; message?: string }

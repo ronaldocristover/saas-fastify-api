@@ -21,8 +21,6 @@ export default fp(
       },
     }
 
-    // When S3_ENDPOINT is set (MinIO, LocalStack, etc.), override the
-    // endpoint and force path-style addressing (required by MinIO).
     if (config.S3_ENDPOINT) {
       clientConfig.endpoint = config.S3_ENDPOINT
       clientConfig.forcePathStyle = true

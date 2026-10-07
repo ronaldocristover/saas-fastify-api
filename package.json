@@ -24,7 +24,7 @@
     "db:migrate": "bun --env-file=.env drizzle-kit migrate",
     "db:seed": "bun --env-file=.env src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test",
+    "verify": "bun run lint && bun run typecheck && bun run test",
     "bruno:run": "cd bruno && bru run --env local"
   },
   "dependencies": {

@@ -6,13 +6,12 @@ import type { UserRole } from '../../types/roles'
 import { createAuthRepository } from './auth.repository'
 import { type AppDb } from '../../db/index'
 
-/** Public user shape. Never exposes passwordHash or deletedAt. */
 export interface PublicUser {
   id: string
   email: string
   fullName: string
   role: UserRole
-  createdAt: string // ISO datetime string for JSON serialization
+  createdAt: string
 }
 
 function toPublicUser(user: User): PublicUser {
@@ -30,7 +29,6 @@ export function sha256(token: string): string {
 }
 
 interface TokenSigner {
-  /** Matches @fastify/jwt JwtSignFunction: takes any payload object. */
   accessJwtSign: (payload: object) => Promise<string>
   refreshJwtSign: (payload: object) => Promise<string>
 }
@@ -55,9 +53,6 @@ export function createAuthService(
     return jwt.refreshJwtSign({ sub: user.id, role: user.role, jti })
   }
 
-  /** Extract the `sub` claim from a JWT without verifying (verification is
-   *  done by the route layer via the refresh namespace before this runs, and
-   *  the token is matched against the DB hash below regardless). */
   function readSub(rawToken: string): string | undefined {
     const parts = rawToken.split('.')
     const payloadB64 = parts[1]
@@ -72,7 +67,6 @@ export function createAuthService(
     }
   }
 
-  /** Persist the SHA-256 hash of the raw JWT with its expiry. */
   async function storeRefreshToken(rawToken: string, userId: string) {
     const parts = rawToken.split('.')
     const payloadB64 = parts[1]
@@ -97,8 +91,6 @@ export function createAuthService(
 
   async function issueTokenPair(user: User): Promise<TokenPair> {
     const accessToken = await makeAccessToken(user)
-    // A random `jti` guarantees a unique token hash per login, even when two
-    // logins happen within the same second (JWTs would otherwise be identical).
     const refreshToken = await makeRefreshToken(user, randomUUID())
     await storeRefreshToken(refreshToken, user.id)
     return { accessToken, refreshToken }
@@ -131,7 +123,6 @@ export function createAuthService(
     async login(input: { email: string; password: string }): Promise<{ user: PublicUser } & TokenPair> {
       const user = await repo.findByEmail(input.email.toLowerCase())
       if (!user) {
-        // When user not found, still run verifyPassword to prevent timing oracle
         const DUMMY_HASH = '$argon2id$v=19$m=19456,t=2,p=1$dGVzdGRhdGE$.invalid'
         await verifyPassword(DUMMY_HASH, input.password).catch(() => {})
         throw unauthorized('INVALID_CREDENTIALS', 'Invalid email or password')
@@ -146,14 +137,12 @@ export function createAuthService(
       return { user: toPublicUser(user), ...tokens }
     },
 
-    /** Check the refresh token against the DB, rotate it, and issue a new pair. */
     async refresh(rawRefreshToken: string): Promise<TokenPair> {
       const sub = readSub(rawRefreshToken)
       if (!sub) {
         throw unauthorized('INVALID_TOKEN', 'Malformed refresh token')
       }
 
-      // Extract exp from JWT payload to check expiry
       const parts = rawRefreshToken.split('.')
       const payloadB64 = parts[1]
       if (!payloadB64) {
@@ -173,7 +162,6 @@ export function createAuthService(
       }
 
       const tokenHash = sha256(rawRefreshToken)
-      // Atomic revocation: if already revoked or missing, reject
       const wasActive = await repo.revokeIfActive(tokenHash)
       if (!wasActive) {
         throw unauthorized('REFRESH_NOT_FOUND', 'Refresh token is invalid or has been revoked')
@@ -184,12 +172,9 @@ export function createAuthService(
         throw unauthorized('USER_NOT_FOUND', 'User no longer exists')
       }
 
-      // Issue new pair first, then revoke old -- failure to issue should not
-      // leave the user stranded with a revoked-but-unusable token.
       return issueTokenPair(user)
     },
 
-    /** Revoke a refresh token (idempotent: revoking an unknown token is a no-op). */
     async logout(rawRefreshToken: string): Promise<void> {
       await repo.revokeRefreshToken(sha256(rawRefreshToken))
     },

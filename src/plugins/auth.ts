@@ -6,18 +6,8 @@ import { config } from '../config/env'
 import { forbidden, unauthorized } from '../common/errors'
 import type { UserRole } from '../types/roles'
 
-// Type augmentation lives in src/types/fastify.d.ts: it declares `user` on
-// FastifyJWT (consumed by @fastify/jwt to type request.user), plus the
-// authenticate/requireRole decorators on FastifyInstance.
-
-// Registers two JWT namespaces:
-//   access  - short-lived (15m), carries user id + role, checked on every request
-//   refresh - long-lived (7d), used only during token rotation
 export default fp(
   async (fastify: FastifyInstance) => {
-    // Cookie support is registered because @fastify/jwt references it; this
-    // boilerplate delivers refresh tokens in the response body (API-first
-    // clients), so no cookie signing secret is needed.
     await fastify.register(cookie)
 
     await fastify.register(fjwt, {
@@ -40,8 +30,6 @@ export default fp(
       }),
     })
 
-    // Verify the access token and populate request.user. Throws through the
-    // shared error handler as a 401, so routes just declare `onRequest: [authenticate]`.
     fastify.decorate(
       'authenticate',
       async (request: FastifyRequest) => {
@@ -53,7 +41,6 @@ export default fp(
       },
     )
 
-    // Factory returning a preHandler that enforces a role on request.user.
     fastify.decorate('requireRole', (role: UserRole) => {
       return async (request: FastifyRequest) => {
         if (request.user?.role !== role) {

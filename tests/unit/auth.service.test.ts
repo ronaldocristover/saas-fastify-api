@@ -23,7 +23,6 @@ describe('AuthService', () => {
     }
 
     mockJwt = {
-      // Tokens include a fake dot-separated payload so the service can parse exp.
       accessJwtSign: vi
         .fn()
         .mockImplementation(() =>
@@ -61,7 +60,6 @@ describe('AuthService', () => {
       })
 
       expect(result.user.email).toBe('test@example.com')
-      // Tokens come from the mocked signer as fake-JWT strings; assert shape.
       expect(result.accessToken).toMatch(/^header\..+\.sig$/)
       expect(result.refreshToken).toMatch(/^header\..+\.sig$/)
       expect(mockRepo.createRefreshToken).toHaveBeenCalled()

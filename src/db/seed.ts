@@ -2,8 +2,6 @@ import { sql } from 'drizzle-orm'
 import { getDb, getPool } from './index'
 import { hashPassword } from '../common/password'
 
-// Seed script: creates an admin user and sample members.
-// Safe to run multiple times (idempotent via UPSERT on email).
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'admin@example.com'
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'admin123456'
 
@@ -18,8 +16,6 @@ const members = [
 async function seed() {
   const db = getDb()
 
-  // Upsert admin, reviving a prior soft-delete so reseeding restores the
-  // intended seed account (the API's DELETE route may have removed it).
   const adminHash = await hashPassword(ADMIN_PASSWORD)
   await db.execute(sql`
     INSERT INTO users (email, password_hash, full_name, role, deleted_at)
@@ -28,7 +24,6 @@ async function seed() {
       password_hash = ${adminHash}, full_name = 'Admin', role = 'admin', deleted_at = NULL
   `)
 
-  // Upsert sample members (also reviving any soft-delete).
   for (const m of members) {
     const hash = await hashPassword('password123')
     await db.execute(sql`

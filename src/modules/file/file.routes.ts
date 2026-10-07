@@ -1,8 +1,9 @@
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import type { ZodTypeProvider } from '@fastify/type-provider-zod'
-import multipart from '@fastify/multipart'
+import multipart, { type SavedMultipartFile } from '@fastify/multipart'
 import { stat } from 'node:fs/promises'
-import { createFileService } from './file.service'
+import { createFileService, MAX_FILE_SIZE, fileTooLarge } from './file.service'
+import { badRequest } from '../../common/errors'
 import {
   uploadFileSchema,
   getFileDownloadUrlSchema,
@@ -13,10 +14,9 @@ export default async function fileRoutes(
   fastify: FastifyInstance,
   _opts: FastifyPluginOptions,
 ) {
-  // Register multipart locally so only this route group handles file uploads
   await fastify.register(multipart, {
     limits: {
-      fileSize: 10 * 1024 * 1024, // 10MB
+      fileSize: MAX_FILE_SIZE,
       files: 1,
       fields: 0,
     },
@@ -28,17 +28,25 @@ export default async function fileRoutes(
     s3PresignedExpiry: fastify.s3PresignedExpiry,
   })
 
-  // POST /upload
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: 'POST',
     url: '/upload',
     schema: uploadFileSchema,
     onRequest: [fastify.authenticate],
     handler: async (request, reply) => {
-      const data = await request.saveRequestFiles()
-      const file = data.files[0]
+      let files: SavedMultipartFile[]
+      try {
+        files = (await request.saveRequestFiles()).files
+      } catch (err) {
+        if (err instanceof fastify.multipartErrors.RequestFileTooLargeError) {
+          throw fileTooLarge()
+        }
+        throw err
+      }
+
+      const file = files[0]
       if (!file) {
-        throw new Error('No file provided')
+        throw badRequest('FILE_REQUIRED', 'A file is required in the "file" field')
       }
 
       const result = await service.upload(request.user.id, {
@@ -52,7 +60,6 @@ export default async function fileRoutes(
     },
   })
 
-  // GET /:id/download-url
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: 'GET',
     url: '/:id/download-url',
@@ -67,7 +74,6 @@ export default async function fileRoutes(
     },
   })
 
-  // GET / (list user's files, or all files for admin)
   fastify.withTypeProvider<ZodTypeProvider>().route({
     method: 'GET',
     url: '/',
